@@ -67,9 +67,9 @@ import zipfile
 # volmute - mute
 # downloadfolder - download folder from pc(only up to 50MB(temporarily))
 
-my_id = 'a1aa9647b19a51cb7ec0131a920771731636d5ef3429a63ae3878ad20db7540d00ccd935a0fd20f688d07fdd08177267a6f612cb7152dea51634f48ab31ed8cc'
-my_id_time = 896575279
-bot_token = '7669163425:AAEOIXzWy4rB8-lNG2kpMKha6wc9-gFtdBE'
+my_id = ''
+my_id_time = 0
+bot_token = ''
 bot = telebot.TeleBot(bot_token)
 date_start = datetime.datetime.now()
 keyboard = Controller()
