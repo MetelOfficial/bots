@@ -1,1 +1,1 @@
-hy2://folowwwrbybt:sPOZL2pdSpC9bHAMa97ZqYIyEw7Z8ICT@.107.181.148:1935?insecure=1&sni=test.xazux.ru&obfs=salamander&obfs-password=4n5CcZsnZomNyqm53QJeMc0XWdtJC42&pinSHA256=30:0E:FF:40:63:CF:FB:E4:0E:54:37:1B:01:ED:F5:68:F7:4D:E9:BD:67:A9:67:25:36:38:C8:78:AA:E3:0A:91#IPv4
+vless://da795c-6bd0-431f-9113-158c19eff0ac@xazux.ru:7777?security=reality&type=tcp&headerType=none&path=&host=xazux.ru&sni=xazux.ru&fp=chrome&pbk=emXjxCV6U7WnqiBVypOh2V0P2_9tJ7-F8F52-MafnXU&sid=6fec3125d9d076a3#XAZUX%20-%20folowwwrbybt
