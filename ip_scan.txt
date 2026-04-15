@@ -1,0 +1,11 @@
+echo "Please wait. Starting nmap..."
+ports=$(nmap -p- --min-rate=500 "$1" 2>/dev/null | grep ^[0-9] | cut -d '/' -f 1 | tr '\n' ',' | sed s/,$//)
+
+if [ "$ports" = "" ]; then
+    # Если портов нет, используем -A без -p
+    echo "No open ports found, performing full scan"
+    nmap -A "$1"
+else
+    echo "Open ports: $ports"
+    nmap -p "$ports" -A "$1"
+fi
